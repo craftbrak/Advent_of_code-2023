@@ -32,18 +32,7 @@ fn read_file(file_path: &str)-> io::Result<String>{
 fn extract_code(source: &str)->Result<i32, Option<ParseIntError>>{
     let mut first_digit:Option<char>= None;
     let mut last_digit: Option<char>= None;
-    let digit_pairs = [
-        ("one", '1'),
-        ("two", '2'),
-        ("three", '3'),
-        ("four", '4'),
-        ("five", '5'),
-        ("six", '6'),
-        ("seven", '7'),
-        ("eight", '8'),
-        ("nine", '9'),
-    ];
-    let mut word_star_index:usize = 0;
+
     for (i, c) in source.char_indices() {
 
         let digit=is_digit_or_digit_word(&source,&c,0,i+1);
@@ -89,7 +78,6 @@ fn is_digit_or_digit_word(s:&str, c:&char, i_start:usize, i_end:usize)->Option<c
         return Some(*c);
     }
     else {
-        let word= &s[i_start..i_end];
         for &(name, d) in &digit_pairs {
             if s[i_start..i_end].contains(name) {
                 return Some(d);
