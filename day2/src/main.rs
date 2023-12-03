@@ -17,13 +17,14 @@ fn main() {
     let mut sum = 0;
     for game in games {
         // println!("games {} , max red {}, max green {}, max_blue {}",game.id, game.max_red,game.max_green , game.max_bleu);
-        if game.max_red > 12 || game.max_green > 13 || game.max_bleu >14 {
-            continue;
-        }
-        else {
-            println!("game : {} is possible (max red {}, max green {}, max_blue {})", game.id,game.max_red,game.max_green , game.max_bleu);
-            sum+=game.id;
-        }
+        // if game.max_red > 12 || game.max_green > 13 || game.max_bleu >14 {
+        //     continue;
+        // }
+        // else {
+        //     println!("game : {} is possible (max red {}, max green {}, max_blue {})", game.id,game.max_red,game.max_green , game.max_bleu);
+        //     sum+=game.id;
+        // }
+        sum+= game.max_red* game.max_green*game.max_bleu;
     }
     println!("the awnser is : {}",sum);
 }
