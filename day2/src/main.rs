@@ -1,7 +1,5 @@
-use std::fs::File;
-use std::io;
-use std::io::{BufReader, Read};
 use std::num::ParseIntError;
+use common_utils::read_file;
 
 struct Game{
    id: i32,
@@ -12,7 +10,7 @@ struct Game{
 
 fn main() {
     println!("Hello, world!");
-    let source = read_file("./input.txt").unwrap();
+    let source = read_file("day2/input.txt").unwrap();
     let games =parse_game(&source).unwrap();
     let mut sum = 0;
     for game in games {
@@ -27,14 +25,6 @@ fn main() {
         sum+= game.max_red* game.max_green*game.max_bleu;
     }
     println!("the awnser is : {}",sum);
-}
-
-fn read_file(file_path: &str)-> io::Result<String>{
-    let file = File::open(file_path)?;
-    let mut bur_reader = BufReader::new(file);
-    let mut contents = String::new();
-    bur_reader.read_to_string(&mut contents)?;
-    Ok(contents)
 }
 fn parse_game(input: &str)->Option<Vec<Game>> {
     let mut games :Vec<Game>=Vec::new();

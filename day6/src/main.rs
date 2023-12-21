@@ -1,10 +1,7 @@
 use std::fmt::{Display, Formatter};
-use std::fs::File;
-use std::io;
-use std::io::{BufReader, Read};
-
+use common_utils::read_file;
 fn main() {
-    println!("Hello, world! { }, part two : {}", part_one("input"),part_two());
+    println!("Hello, world! { }, part two : {}", part_one("day6/input"),part_two());
 
 }
 #[derive(Debug)]
@@ -35,13 +32,6 @@ fn part_one(filename :&str) -> u64{
 }
 fn part_two() -> u64 {
     return count_wins(Race{ time: 58996469, distance: 478223210191071})
-}
-fn read_file(file_path: &str)-> io::Result<String>{
-    let file = File::open(file_path)?;
-    let mut bur_reader = BufReader::new(file);
-    let mut contents = String::new();
-    bur_reader.read_to_string(&mut contents)?;
-    Ok(contents)
 }
 fn parse_races(input: String)-> Vec<Race>{
     let mut races = Vec::new();

@@ -1,11 +1,8 @@
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::{io, thread};
-use std::io::{BufReader, Read};
-
+use common_utils::read_file;
 fn main() {
-    println!("part one results: {}", part_one("input"));
-    println!("part two result: {}",part_two_recursive("input"))
+    println!("part one results: {}", part_one("day4/input"));
+    println!("part two result: {}",part_two_recursive("day4/input"))
 
 }
 struct Card{
@@ -115,12 +112,4 @@ fn parse_card(line: &str)->Card{
         points: 0,
         wins:0
     }
-}
-
-fn read_file(file_path: &str)-> io::Result<String>{
-    let file = File::open(file_path)?;
-    let mut bur_reader = BufReader::new(file);
-    let mut contents = String::new();
-    bur_reader.read_to_string(&mut contents)?;
-    Ok(contents)
 }

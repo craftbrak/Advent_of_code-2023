@@ -1,11 +1,9 @@
-use std::fs::File;
-use std::io;
-use std::io::{BufReader, Read};
 use std::num::ParseIntError;
+use common_utils::read_file;
 
 fn main() {
     println!("Hello, world!");
-    let string = read_file("./input.txt").unwrap();
+    let string = read_file("day1/input.txt").unwrap();
     let strings: Vec<&str> = string.lines().collect();
     let mut codes: Vec<i32>= Vec::new();
     for s in strings {
@@ -20,14 +18,6 @@ fn main() {
     }
     let awnser:i32 /* Type */ =codes.iter().sum();
     println!("The awnser is {}",awnser)
-}
-
-fn read_file(file_path: &str)-> io::Result<String>{
-    let file = File::open(file_path)?;
-    let mut bur_reader = BufReader::new(file);
-    let mut contents = String::new();
-    bur_reader.read_to_string(&mut contents)?;
-    Ok(contents)
 }
 fn extract_code(source: &str)->Result<i32, Option<ParseIntError>>{
     let mut first_digit:Option<char>= None;

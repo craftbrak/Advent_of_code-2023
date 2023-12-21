@@ -1,12 +1,10 @@
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::io;
-use std::io::{BufReader, Read};
 use std::num::ParseIntError;
+use common_utils::read_file;
 
 fn main() {
-    let p_1 = part_one("input.txt").unwrap();
-    let p_2 = part_two("input.txt").unwrap();
+    let p_1 = part_one("day3/input.txt").unwrap();
+    let p_2 = part_two("day3/input.txt").unwrap();
     println!("part 1 {}", p_1);
     println!("part 2 {}",p_2);
 }
@@ -85,14 +83,6 @@ fn get_gear_ratio(cell_x:usize,cell_y:usize, schema: &Vec<Vec<char>>)->Option<i3
         return Some(ratio);
     }
     None
-}
-
-fn read_file(file_path: &str)-> io::Result<String>{
-    let file = File::open(file_path)?;
-    let mut bur_reader = BufReader::new(file);
-    let mut contents = String::new();
-    bur_reader.read_to_string(&mut contents)?;
-    Ok(contents)
 }
 
 fn is_adjecent_to_symbol(cell_x:usize,cell_y:usize, schema: &Vec<Vec<char>>)->Vec<(usize,usize)>{
