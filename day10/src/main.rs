@@ -1,21 +1,18 @@
-use std::collections::HashMap;
+use std::fmt;
+use std::fmt::Display;
+use std::ops::{Div, Sub};
+use common_utils::direction::Direction;
+use common_utils::grid::Grid;
+use common_utils::point::Point;
+use common_utils::{read_file, shoelace_formula};
+
 
 fn main() {
     println!("Hello, world!");
+    part_one();
+    part_two();
 }
-struct Coordinate {
-    x: usize,
-    y: usize
-}
-struct Node {
-    prev: Coordinate,
-    next: Coordinate,
-    visited:bool
-}
-struct Graph {
-    nodes: HashMap<Coordinate,Node>,
-    distance: i64
-}
+#[derive(Clone,PartialEq)]
 enum Pipe {
     Vertical,    // For '|'
     Horizontal,  // For '-'
@@ -27,105 +24,86 @@ enum Pipe {
     Start,       // For 'S', the starting position
 }
 
-fn get_pipe(c: char) -> Pipe {
-    match c {
-        '|' => Pipe::Vertical,
-        '-' => Pipe::Horizontal,
-        'L' => Pipe::BendNE,
-        'J' => Pipe::BendNW,
-        '7' => Pipe::BendSW,
-        'F' => Pipe::BendSE,
-        '.' => Pipe::Ground,
-        'S' => Pipe::Start,
-        _ => panic!("Unknown pipe character: {}", c), // Or handle this case differently if needed
-    }
-}
-fn can_connect(current: Pipe, neighbor: Pipe) -> bool {
-    match current {
-        Pipe::Vertical => matches!(neighbor, Pipe::Vertical | Pipe::BendNE | Pipe::BendNW | Pipe::Start),
-        Pipe::Horizontal => matches!(neighbor, Pipe::Horizontal | Pipe::BendSE | Pipe::BendSW | Pipe::Start),
-        Pipe::BendNE => matches!(neighbor, Pipe::Vertical | Pipe::Horizontal | Pipe::Start),
-        Pipe::BendNW => matches!(neighbor, Pipe::Vertical | Pipe::Horizontal | Pipe::Start),
-        Pipe::BendSW => matches!(neighbor, Pipe::Vertical | Pipe::Horizontal | Pipe::Start),
-        Pipe::BendSE => matches!(neighbor, Pipe::Vertical | Pipe::Horizontal | Pipe::Start),
-        Pipe::Start => true, // Start can connect to any pipe, but this is further determined by the neighbor's type
-        Pipe::Ground => false, // Ground doesn't connect to anything
-    }
-}
-fn get_neighbours(matrix :&Vec<Vec<char>>, coordinate: Coordinate)-> (Option<Coordinate>,Option<Coordinate>){
-    let pipe = get_pipe(matrix.get(coordinate.x).unwrap().get(coordinate.y).unwrap().clone());
-    match pipe {
-        Pipe::Vertical => {
-            let left = if coordinate.y > 0 { Some(Coordinate { x: coordinate.x, y: coordinate.y - 1 }) } else { None };
-            let right = if coordinate.y < matrix[coordinate.x].len() - 1 { Some(Coordinate { x: coordinate.x, y: coordinate.y + 1 }) } else { None };
-            (left, right)
-        },
-        Pipe::Horizontal => {
-            let up = if coordinate.x > 0 { Some(Coordinate { x: coordinate.x - 1, y: coordinate.y }) } else { None };
-            let down = if coordinate.x < matrix.len() - 1 { Some(Coordinate { x: coordinate.x + 1, y: coordinate.y }) } else { None };
-            (up, down)
-        },
-        Pipe::BendNE => {
-            let up = if coordinate.x > 0 { Some(Coordinate { x: coordinate.x - 1, y: coordinate.y }) } else { None };
-            let right = if coordinate.y < matrix[coordinate.x].len() - 1 { Some(Coordinate { x: coordinate.x, y: coordinate.y + 1 }) } else { None };
-            (up, right)
-        },
-        Pipe::BendNW => {
-            let up = if coordinate.x > 0 { Some(Coordinate { x: coordinate.x - 1, y: coordinate.y }) } else { None };
-            let left = if coordinate.y > 0 { Some(Coordinate { x: coordinate.x, y: coordinate.y - 1 }) } else { None };
-            (up, left)
-        },
-        Pipe::BendSW => {
-            let down = if coordinate.x < matrix.len() - 1 { Some(Coordinate { x: coordinate.x + 1, y: coordinate.y }) } else { None };
-            let left = if coordinate.y > 0 { Some(Coordinate { x: coordinate.x, y: coordinate.y - 1 }) } else { None };
-            (down, left)
-        },
-        Pipe::BendSE => {
-            let down = if coordinate.x < matrix.len() - 1 { Some(Coordinate { x: coordinate.x + 1, y: coordinate.y }) } else { None };
-            let right = if coordinate.y < matrix[coordinate.x].len() - 1 { Some(Coordinate { x: coordinate.x, y: coordinate.y + 1 }) } else { None };
-            (down, right)
-        },
-
-        Pipe::Start => {
-            let mut connections: Vec<Option<Coordinate>> = Vec::new();
-
-            // Check Up
-            if coordinate.x > 0 && can_connect(Pipe::Start, get_pipe(matrix[coordinate.x - 1][coordinate.y])) {
-                connections.push(Some(Coordinate { x: coordinate.x - 1, y: coordinate.y }));
-            }
-
-            // Check Down
-            if coordinate.x < matrix.len() - 1 && can_connect(Pipe::Start, get_pipe(matrix[coordinate.x + 1][coordinate.y])) {
-                connections.push(Some(Coordinate { x: coordinate.x + 1, y: coordinate.y }));
-            }
-
-            // Check Left
-            if coordinate.y > 0 && can_connect(Pipe::Start, get_pipe(matrix[coordinate.x][coordinate.y - 1])) {
-                connections.push(Some(Coordinate { x: coordinate.x, y: coordinate.y - 1 }));
-            }
-
-            // Check Right
-            if coordinate.y < matrix[coordinate.x].len() - 1 && can_connect(Pipe::Start, get_pipe(matrix[coordinate.x][coordinate.y + 1])) {
-                connections.push(Some(Coordinate { x: coordinate.x, y: coordinate.y + 1 }));
-            }
-
-            // Return the first two connections found (or None if fewer)
-            (connections.get(0).cloned().flatten(), connections.get(1).cloned().flatten())
-        }
-        Pipe::Ground => (None, None),
-    }
-}
-fn deph_fisrt_search(){
-    //Todo: implmement DFS
-}
-fn parse_matrix(string: String)-> Vec<Vec<char>>{
-    string.lines().map(|x |{ x.chars().collect::<Vec<char>>()}).collect::<Vec<Vec<char>>>()
-}
-fn find_start(matrix :&Vec<Vec<char>>)-> Option<Coordinate>{
-    for (i,row) in matrix.iter().enumerate() {
-        for (j, c)  in row.iter().enumerate() {
-            if c == 'S' { return Some(Coordinate{ x: i , y: j  }) }
+impl Pipe {
+    fn directions(&self) -> Vec<Direction> {
+        match self {
+            Pipe::Vertical => { vec![Direction::North, Direction::South] }
+            Pipe::Horizontal => { vec![Direction::East, Direction::West] }
+            Pipe::BendNE => { vec![Direction::North, Direction::East] }
+            Pipe::BendNW => { vec![Direction::North, Direction::West] }
+            Pipe::BendSW => { vec![Direction::South, Direction::West] }
+            Pipe::BendSE => { vec![Direction::South, Direction::East] }
+            Pipe::Ground => { vec![] }
+            Pipe::Start => { vec![Direction::South, Direction::East, Direction::West, Direction::North] }
         }
     }
-    return None
+}
+
+impl From<char> for Pipe{
+    fn from(value: char) -> Self {
+        match value {
+            '|' => Self::Vertical,
+            '-' => Self::Horizontal,
+            'L' => Self::BendNE,
+            'J' => Self::BendNW,
+            '7' => Self::BendSW,
+            'F' => Self::BendSE,
+            '.' => Self::Ground,
+            'S' => Self::Start,
+            _ => panic!("Unknown pipe character: {}", value),
+        }
+    }
+}
+impl Display for Pipe {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let char: char = match self {
+            Self::Vertical => '|',
+            Self::Horizontal => '-',
+            Self::BendNE => 'L',
+            Self::BendNW => 'J',
+            Self::BendSW => '7',
+            Self::BendSE => 'F',
+            Self::Start => 'S',
+            Self::Ground => '.',
+        };
+        write!(f, "{}", char)
+    }
+}
+fn walk(grid:Grid<Pipe>) -> Vec<Point> {
+    let start = grid.get_first_position(&Pipe::Start).expect("No Start");
+    let mut visited : Vec<Point> = vec![start];
+    loop {
+        let current = *visited.last().unwrap();
+        let current_pipe = grid.get_for_point(&current).expect("no pipe ??");
+
+        let adjacent: Vec<Point> = match current_pipe {
+            Pipe::Start => { current.adjacent().into_iter().filter(|point| {grid.is_in(point)}).filter(|adjacent| {
+                let pipe =grid.get_for_point(&adjacent).unwrap();
+                adjacent.adjacent_in_directions(pipe.directions()).contains(&current)
+            }).collect()
+            }
+            _ => {current.adjacent_in_directions(current_pipe.directions())}
+        };
+        let next_moves :Vec<Point> = adjacent.into_iter().filter(|point: &Point| {grid.is_in(point) && !visited.contains(&&point)}).filter(|p| { let pipe = grid.get_for_point(&p).unwrap(); *pipe != Pipe::Ground}).collect();
+        if visited.len()> 1 && next_moves.is_empty(){
+            break;
+        }
+        let next_move = next_moves.first().expect("No NextMoves").clone();
+        visited.push(next_move)
+    }
+    visited
+}
+
+
+fn part_one(){
+    let grid = Grid::from_custom(read_file("day10/input").unwrap().as_str(), |c| {Pipe::from(c)});
+    let path = walk(grid);
+    println!("p1 : {}", path.len().div(2).to_string())
+}
+fn part_two(){
+    let grid = Grid::from_custom(read_file("day10/input").unwrap().as_str(), |c| {Pipe::from(c)});
+    let path = walk(grid);
+    println!("p1 : {}", shoelace_formula(&path)
+        .sub(path.len() as isize)
+        .to_string())
 }
