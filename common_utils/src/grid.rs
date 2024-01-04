@@ -148,6 +148,35 @@ impl<T> Grid<T>
     pub fn modify(&mut self, point: Point, new_value: T) {
         *self.cells.get_mut(&point).unwrap() = new_value;
     }
+    pub fn columns_with_only(&self, value: T) -> Vec<i32> {
+        let columns = self.columns();
+
+        columns
+            .iter()
+            // Filter columns that are entirely Space::Void
+            .filter_map(|(&column_id, column_data)| {
+                if column_data.values().all(|&cell| *cell == value) {
+                    Some(column_id) // Include this column ID
+                } else {
+                    None // Exclude this column
+                }
+            })
+            // Collect the filtered column IDs into a vector
+            .collect()
+    }
+    pub fn rows_all_filled_with(&self, value_to_check: T) -> Vec<i32> {
+        let rows = self.rows();
+
+        rows.iter()
+            .filter_map(|(&row_id, row_data)| {
+                if row_data.values().all(|&cell| *cell == value_to_check) {
+                    Some(row_id) // Include this row ID
+                } else {
+                    None // Exclude this row
+                }
+            })
+            .collect()
+    }
 
     #[cfg(test)]
     pub fn modify_many(&mut self, points: Vec<Point>, new_value: T)
@@ -240,6 +269,7 @@ impl<T> Grid<T>
         self.columns_range = Self::calculate_columns_range(&self.cells);
         self.rows_range = Self::calculate_rows_range(&self.cells)
     }
+
 }
 
 impl<T> Display for Grid<T>
@@ -374,7 +404,44 @@ mod tests {
 
         assert_eq!("..\nAB\n..\nCD\n..\n", grid.to_string());
     }
+    #[test]
+    fn columns_all_filled_with_test() {
+        // Create a grid with specific values
+        let mut hash_map: HashMap<Point, char> = HashMap::new();
+        hash_map.insert(Point::new(0, 0), 'X');
+        hash_map.insert(Point::new(0, 1), 'X');
+        hash_map.insert(Point::new(1, 0), 'O');
+        hash_map.insert(Point::new(1, 1), 'X');
+        hash_map.insert(Point::new(2, 0), 'X');
+        hash_map.insert(Point::new(2, 1), 'X');
+        let grid = Grid::new(hash_map);
 
+        // Call the function with the value 'X'
+        let columns_filled_with_x = grid.columns_with_only('X');
+
+        // Assert that the function returns the correct column IDs
+        // Here we expect columns 0 and 2 to be entirely filled with 'X'
+        assert_eq!(columns_filled_with_x, vec![0, 2]);
+    }
+    #[test]
+    fn rows_all_filled_with_test() {
+        // Create a grid with specific values
+        let mut hash_map: HashMap<Point, char> = HashMap::new();
+        hash_map.insert(Point::new(0, 0), 'Y');
+        hash_map.insert(Point::new(0, 1), 'O');
+        hash_map.insert(Point::new(1, 0), 'Y');
+        hash_map.insert(Point::new(1, 1), 'Y');
+        hash_map.insert(Point::new(2, 0), 'Y');
+        hash_map.insert(Point::new(2, 1), 'O');
+        let grid = Grid::new(hash_map);
+
+        // Call the function with the value 'Y'
+        let rows_filled_with_y = grid.rows_all_filled_with('Y');
+
+        // Assert that the function returns the correct row IDs
+        // Here we expect row 0 to be entirely filled with 'Y'
+        assert_eq!(rows_filled_with_y, vec![0]);
+    }
     fn grid() -> Grid<char> {
         let mut hash_map: HashMap<Point, char> = HashMap::new();
         hash_map.insert(Point::new(0, 0), 'A');
